@@ -1,0 +1,99 @@
+/*eslint-env node */
+
+var gulp = require("gulp");
+var sass = require("gulp-sass");
+var autoprefixer = require("gulp-autoprefixer");
+var browserSync = require("browser-sync").create();
+var concat = require("gulp-concat");
+var uglify = require("gulp-uglify");
+var babel = require("gulp-babel");
+const prettier = require("gulp-prettier");
+const imagemin = require("gulp-imagemin");
+
+gulp.task(
+  "default",
+  ["copy-html", "copy-images", "styles", "lint", "scripts"],
+  function() {
+    gulp.watch("src/sass/**/*.scss", ["styles"]);
+    gulp.watch("src/js/**/*.js", ["lint"]);
+    gulp.watch("src/index.html", ["copy-html"]);
+    gulp.watch("./dist/index.html").on("change", browserSync.reload);
+
+    browserSync.init({
+      server: "./dist",
+      port: 3000
+    });
+  }
+);
+
+gulp.task("dist", [
+  "copy-html",
+  "copy-images",
+  "styles",
+  "lint",
+  "scripts-dist"
+]);
+
+gulp.task("scripts", function() {
+  gulp
+    .src("src/js/**/*.js")
+    .pipe(babel())
+    .pipe(concat("all.js"))
+    .pipe(gulp.dest("dist/js"));
+});
+
+gulp.task("scripts-dist", function() {
+  gulp
+    .src("src/js/**/*.js")
+    .src(babel())
+    .pipe(concat("all.js"))
+    .pipe(uglify())
+    .pipe(gulp.dest("dist/js"));
+});
+
+gulp.task("copy-html", function() {
+  gulp.src("src/*.html").pipe(gulp.dest("./dist"));
+});
+
+gulp.task("copy-images", function() {
+  gulp
+    .src("src/img/*")
+    .pipe(
+      imagemin({
+        progressive: true
+      })
+    )
+    .pipe(gulp.dest("dist/img"));
+});
+
+gulp.task("styles", function() {
+  gulp
+    .src("src/sass/**/*.scss")
+    .pipe(
+      sass({
+        outputStyle: "compressed"
+      }).on("error", sass.logError)
+    )
+    .pipe(
+      autoprefixer({
+        browsers: ["last 2 versions"]
+      })
+    )
+    .pipe(gulp.dest("dist/css"))
+    .pipe(browserSync.stream());
+});
+
+gulp.task("lint", function() {
+  return gulp.src(["js/**/*.js"]).pipe(prettier({ useFlowParser: true }));
+});
+
+// gulp.task("tests", function() {
+//   gulp.src("tests/spec/extraSpec.js").pipe(
+//     jasmine({
+//       integration: true,
+//       vendor: "js/**/*.js"
+//     })
+//   );
+// });
+
+gulp.watch("./dist/index.html").on("change", browserSync.reload);
