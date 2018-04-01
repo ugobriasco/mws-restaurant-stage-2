@@ -40,16 +40,16 @@
   <script src="js/dbhelper.js"></script>
   <script src="js/main.js"></script>
   <script>
-//   if ("serviceWorker" in navigator) {
-//   window.addEventListener("load", () => {
-//     navigator.serviceWorker
-//       .register("sw.js")
-//       .then(registration => {
-//         console.log("SW registered successfully", registration.scope);
-//       })
-//       .catch(err => console.log("SW registration failed", err));
-//   });
-// }
+  if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('sw.js')
+      .then(registration => {
+        console.log('SW registered successfully', registration.scope);
+      })
+      .catch(err => console.log('SW registration failed', err));
+  });
+}
 </script>
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBV35fUoGLVq9aIRmCiMZBRJW7c0KIBnbg&libraries=places&callback=initMap"></script>
 
