@@ -9,12 +9,11 @@ const browserSync = require('browser-sync').create();
 
 gulp.task(
   'default',
-  ['copy-html', 'copy-data', 'styles', 'copy-img', 'scripts', 'sw'],
+  ['copy-html', 'styles', 'copy-img', 'dev-scripts', 'sw'],
   function() {
     gulp.watch('src/*.html', ['copy-html']);
-    gulp.watch('src/data/*.json', ['copy-data']);
     gulp.watch('src/scss/*.scss', ['styles']);
-    gulp.watch('src/js/*.js'), ['scripts'];
+    gulp.watch('src/js/*.js'), ['dev-scripts'];
     gulp.watch('src/sw.js'), ['sw'];
     gulp.watch('scr/img/*', ['copy-img']);
     gulp.watch('./dist/index.html').on('change', browserSync.reload);
@@ -50,6 +49,12 @@ gulp.task('scripts', function() {
     .src('src/js/**/*.js')
     .pipe(babel())
     .pipe(concat('all.js'))
+    .pipe(gulp.dest('./dist/js'));
+});
+gulp.task('dev-scripts', function() {
+  gulp
+    .src('src/js/*.js')
+    .pipe(babel())
     .pipe(gulp.dest('./dist/js'));
 });
 
