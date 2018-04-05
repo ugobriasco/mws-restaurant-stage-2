@@ -23,7 +23,12 @@ class DBHelper {
         return Promise.reject(new Error(res.statusText));
       })
       .then(res => res.json())
+      .then(arr => {
+        IDBHelper.refreshRestaurants(arr);
+        return arr;
+      })
       .then(restaurants => {
+        IDBHelper.getRestaurants();
         callback(null, restaurants);
       })
       .catch(err => {
