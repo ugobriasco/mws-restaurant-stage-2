@@ -28,8 +28,9 @@ class DBHelper {
         return arr;
       })
       .then(restaurants => {
-        IDBHelper.getRestaurants();
-        callback(null, restaurants);
+        IDBHelper.getRestaurants().then(localres => {
+          callback(null, localres);
+        });
       })
       .catch(err => {
         console.log('Request failed', err);

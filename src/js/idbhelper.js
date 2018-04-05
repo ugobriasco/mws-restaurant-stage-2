@@ -15,10 +15,10 @@ class IDBHelper {
   }
 
   static getRestaurants() {
-    dbPromise.then(function(db) {
+    return dbPromise.then(function(db) {
       const tx = db.transaction('restaurants');
       const store = tx.objectStore('restaurants');
-      store.getAll().then(res => console.log(res));
+      return store.getAll();
     });
   }
 }
