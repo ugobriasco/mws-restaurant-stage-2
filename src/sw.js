@@ -10,6 +10,8 @@ self.addEventListener('install', event => {
         './css/styles.css',
         './css/styles.md.css',
         './css/styles.lg.css',
+        './js/idb.js',
+        './js/idbhelper.js',
         './js/dbhelper.js',
         './js/main.js',
         './js/restaurant_info.js',

@@ -16,11 +16,11 @@ class DBHelper {
    */
   static fetchRestaurants(callback) {
     fetch(DBHelper.DATABASE_URL)
-      .then(res => {
-        if (res.status >= 200 && res.status < 300) {
-          return Promise.resolve(res);
-        }
-        return Promise.reject(new Error(res.statusText));
+      .catch(err => {
+        console.log(err, 'connectivity error, serving from cache');
+        IDBHelper.getRestaurants().then(localres => {
+          callback(null, localres);
+        });
       })
       .then(res => res.json())
       .then(arr => {
