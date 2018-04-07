@@ -10,6 +10,8 @@ self.addEventListener('install', event => {
         './css/styles.css',
         './css/styles.md.css',
         './css/styles.lg.css',
+        './js/idb.js',
+        './js/idbhelper.js',
         './js/dbhelper.js',
         './js/main.js',
         './js/restaurant_info.js',
@@ -22,7 +24,8 @@ self.addEventListener('install', event => {
         './img/w600_7.jpg',
         './img/w600_8.jpg',
         './img/w600_9.jpg',
-        './img/w600_10.jpg'
+        './img/w600_10.jpg',
+        './favicon.ico'
       ]);
     })
   );
