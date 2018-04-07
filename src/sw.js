@@ -24,7 +24,8 @@ self.addEventListener('install', event => {
         './img/w600_7.jpg',
         './img/w600_8.jpg',
         './img/w600_9.jpg',
-        './img/w600_10.jpg'
+        './img/w600_10.jpg',
+        './favicon.ico'
       ]);
     })
   );
