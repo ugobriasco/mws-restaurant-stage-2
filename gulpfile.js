@@ -11,13 +11,26 @@ const browserSync = require('browser-sync').create();
 
 gulp.task(
   'default',
-  ['copy-html', 'styles', 'copy-img', 'scripts', 'sw', 'compress-lib-js'],
+  [
+    'copy-html',
+    'styles',
+    'scripts',
+    'lib-scripts',
+    'compress-lib-js',
+    'compress-main-js',
+    'compress-restaurant-js',
+    'sw',
+    'copy-img'
+  ],
   function() {
     gulp.watch('src/*.html', ['copy-html']);
     gulp.watch('src/scss/*.scss', ['styles']);
     gulp.watch('src/js/*.js'), ['scripts'];
-    gulp.watch('src/sw.js'), ['sw'];
+    gulp.watch('src/js/lib/*.js'), ['lib-scripts'];
     gulp.watch('dist/js/*.js'), ['compress-lib-js'];
+    gulp.watch('dist/js/*.js'), ['compress-main-js'];
+    gulp.watch('dist/js/*.js'), ['compress-restaurant-js'];
+    gulp.watch('src/sw.js'), ['sw'];
     gulp.watch('scr/img/*', ['copy-img']);
     gulp.watch('./dist/index.html').on('change', browserSync.reload);
 
@@ -32,42 +45,41 @@ gulp.task('copy-html', function() {
   gulp.src('src/*.html').pipe(gulp.dest('./dist'));
 });
 
-gulp.task('copy-data', function() {
-  gulp.src('src/data/*.json').pipe(gulp.dest('./dist/data'));
-});
-gulp.task('copy-img', function() {
+gulp.task('styles', function() {
   gulp
-    .src('src/img/*')
+    .src([
+      'src/scss/styles.scss',
+      'src/scss/styles.md.scss',
+      'src/scss/styles.lg.scss'
+    ])
     .pipe(
-      imagemin({
-        progressive: true
+      sass({
+        outputStyle: 'compressed'
+      }).on('error', sass.logError)
+    )
+    .pipe(
+      autoprefixer({
+        browsers: ['last 2 versions']
       })
     )
-    .pipe(gulp.dest('dist/img'));
-  gulp.src('src/favicon.ico').pipe(gulp.dest('./dist'));
+    .pipe(concat('styles.min.css'))
+    .pipe(gulp.dest('dist/css'))
+    .pipe(browserSync.stream());
 });
 
 gulp.task('scripts', function() {
-  return gulp
-    .src('src/js/lib/*.js')
-    .pipe(babel())
-    .pipe(concat('lib.js'))
-    .pipe(gulp.dest('./dist/js'));
-});
-
-gulp.task('dev-scripts', function() {
   gulp
     .src('src/js/*.js')
     .pipe(babel())
     .pipe(gulp.dest('./dist/js'));
 });
 
-gulp.task('sw', function() {
-  gulp
-    .src('src/sw.js')
+gulp.task('lib-scripts', function() {
+  return gulp
+    .src('src/js/lib/*.js')
     .pipe(babel())
-    .pipe(concat('sw.js'))
-    .pipe(gulp.dest('./dist'));
+    .pipe(concat('lib.js'))
+    .pipe(gulp.dest('./dist/js'));
 });
 
 gulp.task('compress-lib-js', function(cb) {
@@ -85,19 +97,52 @@ gulp.task('compress-lib-js', function(cb) {
   );
 });
 
-gulp.task('styles', function() {
+gulp.task('compress-main-js', function(cb) {
+  pump(
+    [
+      gulp.src('dist/js/main.js'),
+      rename('main.min.js'),
+      babel({
+        presets: ['es2015']
+      }),
+      uglify(),
+      gulp.dest('./dist/js')
+    ],
+    cb
+  );
+});
+
+gulp.task('compress-restaurant-js', function(cb) {
+  pump(
+    [
+      gulp.src('dist/js/restaurant_info.js'),
+      rename('restaurant_info.min.js'),
+      babel({
+        presets: ['es2015']
+      }),
+      uglify(),
+      gulp.dest('./dist/js')
+    ],
+    cb
+  );
+});
+
+gulp.task('copy-img', function() {
   gulp
-    .src('src/scss/**/*.scss')
+    .src('src/img/*')
     .pipe(
-      sass({
-        outputStyle: 'compressed'
-      }).on('error', sass.logError)
-    )
-    .pipe(
-      autoprefixer({
-        browsers: ['last 2 versions']
+      imagemin({
+        progressive: true
       })
     )
-    .pipe(gulp.dest('dist/css'))
-    .pipe(browserSync.stream());
+    .pipe(gulp.dest('dist/img'));
+  gulp.src('src/favicon.ico').pipe(gulp.dest('./dist'));
+});
+
+gulp.task('sw', function() {
+  gulp
+    .src('src/sw.js')
+    .pipe(babel())
+    .pipe(concat('sw.js'))
+    .pipe(gulp.dest('./dist'));
 });
