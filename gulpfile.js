@@ -37,6 +37,25 @@ gulp.task(
   }
 );
 
+// main tasks
+gulp.task('watch', function() {
+  console.log('watching 👀 ');
+  gulp.watch('src/*.html', ['copy-html']);
+  gulp.watch('src/scss/*.scss', ['styles']);
+  gulp.watch('src/js/*.js'), ['scripts'];
+  gulp.watch('src/js/lib/*.js'), ['lib-scripts'];
+  gulp.watch('dist/js/*.js'), ['compress-lib-js'];
+  gulp.watch('src/sw.js'), ['sw'];
+  gulp.watch('scr/img/*', ['copy-img']);
+  gulp.watch('./dist/index.html').on('change', browserSync.reload);
+
+  browserSync.init({
+    server: './dist',
+    port: 3000
+  });
+});
+
+// sub tasks
 gulp.task('copy-html', function() {
   gulp.src('src/*.html').pipe(gulp.dest('./dist'));
 });
