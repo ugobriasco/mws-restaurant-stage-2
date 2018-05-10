@@ -107,6 +107,13 @@ updateRestaurants = () => {
       } else {
         resetRestaurants(restaurants);
         fillRestaurantsHTML();
+
+        //lazy loader
+        const images = document.querySelectorAll('.restaurant-img');
+        const observer = new IntersectionObserver(handleIntersection, options);
+        images.forEach(img => {
+          observer.observe(img);
+        });
       }
     }
   );
@@ -142,9 +149,14 @@ fillRestaurantsHTML = (restaurants = self.restaurants) => {
  * Create restaurant HTML.
  */
 createRestaurantHTML = restaurant => {
+  const dataSrc = document.createAttribute('data-src');
+  dataSrc.value = DBHelper.imageUrlForRestaurant(restaurant);
+
   const image = document.createElement('img');
   image.className = 'restaurant-img';
-  image.src = DBHelper.imageUrlForRestaurant(restaurant);
+  image.src =
+    'http://res.cloudinary.com/christekh/image/upload/c_scale,h_3,w_5/v1505391130/wynand-van-poortvliet-364366_gsvyby.jpg';
+  image.setAttributeNode(dataSrc);
   image.alt = DBHelper.getImageAlt(restaurant);
 
   const name = document.createElement('h2');
