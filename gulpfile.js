@@ -7,63 +7,39 @@ const babel = require('gulp-babel');
 const uglify = require('gulp-uglify');
 const pump = require('pump');
 const rename = require('gulp-rename');
+const injectCSS = require('gulp-inject-css');
 const browserSync = require('browser-sync').create();
 
-gulp.task(
-  'default',
-  [
-    'copy-html',
-    'copy-manifest',
-    'styles',
-    'scripts',
-    'lib-scripts',
-    'compress-lib-js',
-    'sw',
-    'copy-img'
-  ],
-  function() {
-    gulp.watch('src/*.html', ['copy-html', 'copy-manifest']);
-    gulp.watch('src/scss/*.scss', ['styles']);
-    gulp.watch('src/js/*.js'), ['scripts'];
-    gulp.watch('src/js/lib/*.js'), ['lib-scripts'];
-    gulp.watch('dist/js/*.js'), ['compress-lib-js'];
-    gulp.watch('src/sw.js'), ['sw'];
-    gulp.watch('scr/img/*', ['copy-img']);
-    gulp.watch('./dist/index.html').on('change', browserSync.reload);
-
-    browserSync.init({
-      server: './dist',
-      port: 3000
-    });
-  }
-);
+gulp.task('default', ['build', 'watch']);
 
 // main tasks
+
 gulp.task('watch', function() {
-  console.log('watching 👀 ');
-  gulp.watch('src/*.html', ['copy-html']);
-  gulp.watch('src/scss/*.scss', ['styles']);
-  gulp.watch('src/js/*.js'), ['scripts'];
-  gulp.watch('src/js/lib/*.js'), ['lib-scripts'];
-  gulp.watch('dist/js/*.js'), ['compress-lib-js'];
+  console.log('👀  Gulp is watching 👀 ');
+  gulp.watch('src/scss/*.scss', ['styles', 'build-html']);
+  gulp.watch('src/*.html', ['build-html']);
+  gulp.watch('src/js/**/*.js'), ['scripts', 'lib-scripts'];
   gulp.watch('src/sw.js'), ['sw'];
   gulp.watch('scr/img/*', ['copy-img']);
-  gulp.watch('./dist/index.html').on('change', browserSync.reload);
-
+  gulp.watch('./dist/*').on('change', browserSync.reload);
   browserSync.init({
     server: './dist',
     port: 3000
   });
 });
 
-// sub tasks
-gulp.task('copy-html', function() {
-  gulp.src('src/*.html').pipe(gulp.dest('./dist'));
-});
+gulp.task('build', [
+  'styles',
+  'build-html',
+  'copy-manifest',
+  'scripts',
+  'lib-scripts',
+  'compress-lib-js',
+  'sw',
+  'copy-img'
+]);
 
-gulp.task('copy-manifest', function() {
-  gulp.src('src/manifest.json').pipe(gulp.dest('./dist'));
-});
+// sub tasks
 
 gulp.task('styles', function() {
   gulp
@@ -83,8 +59,18 @@ gulp.task('styles', function() {
       })
     )
     .pipe(concat('styles.min.css'))
-    .pipe(gulp.dest('dist/css'))
-    .pipe(browserSync.stream());
+    .pipe(gulp.dest('./src/css'));
+});
+
+gulp.task('build-html', function() {
+  gulp
+    .src('src/*.html')
+    .pipe(injectCSS())
+    .pipe(gulp.dest('./dist'));
+});
+
+gulp.task('copy-manifest', function() {
+  gulp.src('src/manifest.json').pipe(gulp.dest('./dist'));
 });
 
 gulp.task('scripts', function() {

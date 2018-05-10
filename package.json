@@ -35,6 +35,7 @@
     "gulp-babel": "^7.0.1",
     "gulp-concat": "^2.6.1",
     "gulp-imagemin": "^4.1.0",
+    "gulp-inject-css": "^0.3.10",
     "gulp-prettier": "^1.1.0",
     "gulp-rename": "^1.2.2",
     "gulp-sass": "^3.2.1",

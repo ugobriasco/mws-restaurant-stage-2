@@ -1,4 +1,4 @@
-// https://scotch.io/tutorials/lazy-loading-images-for-performance-using-intersection-observer
+// https://scoxtch.io/tutorials/lazy-loading-images-for-performance-using-intersection-observer
 
 const options = {
   root: null,
