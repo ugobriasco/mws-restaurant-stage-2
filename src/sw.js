@@ -26,7 +26,9 @@ self.addEventListener('install', event => {
           './img/w600_8.jpg',
           './img/w600_9.jpg',
           './img/w600_10.jpg',
-          './favicon.ico'
+          './icons/burger512.png',
+          './favicon.ico',
+          './manifest.json'
         ]);
       })
       .catch(err => console.log(err))

@@ -13,6 +13,7 @@ gulp.task(
   'default',
   [
     'copy-html',
+    'copy-manifest',
     'styles',
     'scripts',
     'lib-scripts',
@@ -21,7 +22,7 @@ gulp.task(
     'copy-img'
   ],
   function() {
-    gulp.watch('src/*.html', ['copy-html']);
+    gulp.watch('src/*.html', ['copy-html', 'copy-manifest']);
     gulp.watch('src/scss/*.scss', ['styles']);
     gulp.watch('src/js/*.js'), ['scripts'];
     gulp.watch('src/js/lib/*.js'), ['lib-scripts'];
@@ -58,6 +59,10 @@ gulp.task('watch', function() {
 // sub tasks
 gulp.task('copy-html', function() {
   gulp.src('src/*.html').pipe(gulp.dest('./dist'));
+});
+
+gulp.task('copy-manifest', function() {
+  gulp.src('src/manifest.json').pipe(gulp.dest('./dist'));
 });
 
 gulp.task('styles', function() {
@@ -121,6 +126,14 @@ gulp.task('copy-img', function() {
       })
     )
     .pipe(gulp.dest('dist/img'));
+  gulp
+    .src('src/icons/*.png')
+    .pipe(
+      imagemin({
+        progressive: true
+      })
+    )
+    .pipe(gulp.dest('dist/icons'));
   gulp.src('src/favicon.ico').pipe(gulp.dest('./dist'));
 });
 
