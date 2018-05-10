@@ -17,8 +17,6 @@ gulp.task(
     'scripts',
     'lib-scripts',
     'compress-lib-js',
-    'compress-main-js',
-    'compress-restaurant-js',
     'sw',
     'copy-img'
   ],
@@ -28,8 +26,6 @@ gulp.task(
     gulp.watch('src/js/*.js'), ['scripts'];
     gulp.watch('src/js/lib/*.js'), ['lib-scripts'];
     gulp.watch('dist/js/*.js'), ['compress-lib-js'];
-    gulp.watch('dist/js/*.js'), ['compress-main-js'];
-    gulp.watch('dist/js/*.js'), ['compress-restaurant-js'];
     gulp.watch('src/sw.js'), ['sw'];
     gulp.watch('scr/img/*', ['copy-img']);
     gulp.watch('./dist/index.html').on('change', browserSync.reload);
@@ -87,36 +83,6 @@ gulp.task('compress-lib-js', function(cb) {
     [
       gulp.src('dist/js/lib.js'),
       rename('lib.min.js'),
-      babel({
-        presets: ['es2015']
-      }),
-      uglify(),
-      gulp.dest('./dist/js')
-    ],
-    cb
-  );
-});
-
-gulp.task('compress-main-js', function(cb) {
-  pump(
-    [
-      gulp.src('dist/js/main.js'),
-      rename('main.min.js'),
-      babel({
-        presets: ['es2015']
-      }),
-      uglify(),
-      gulp.dest('./dist/js')
-    ],
-    cb
-  );
-});
-
-gulp.task('compress-restaurant-js', function(cb) {
-  pump(
-    [
-      gulp.src('dist/js/restaurant_info.js'),
-      rename('restaurant_info.min.js'),
       babel({
         presets: ['es2015']
       }),
