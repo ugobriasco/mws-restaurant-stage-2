@@ -1,26 +1,33 @@
 const gulp = require('gulp');
+const gutil = require('gulp-util');
 const sass = require('gulp-sass');
 const autoprefixer = require('gulp-autoprefixer');
 const imagemin = require('gulp-imagemin');
 const concat = require('gulp-concat');
 const babel = require('gulp-babel');
-const uglify = require('gulp-uglify');
+const uglify = require('gulp-uglify-es').default;
 const pump = require('pump');
 const rename = require('gulp-rename');
 const injectCSS = require('gulp-inject-css');
+const minifyHTML = require('gulp-htmlmin');
 const browserSync = require('browser-sync').create();
+
+const options = {
+  toplevel: true,
+  compress: {
+    passes: 2
+  },
+  output: {
+    beautify: false,
+    preamble: '/* uglified */'
+  }
+};
 
 gulp.task('default', ['build', 'watch']);
 
-// main tasks
-
 gulp.task('watch', function() {
   console.log('👀  Gulp is watching 👀 ');
-  gulp.watch('src/scss/*.scss', ['styles', 'build-html']);
-  gulp.watch('src/*.html', ['build-html']);
-  gulp.watch('src/js/**/*.js'), ['scripts', 'lib-scripts'];
-  gulp.watch('src/sw.js'), ['sw'];
-  gulp.watch('scr/img/*', ['copy-img']);
+  gulp.watch('src/*', ['build']);
   gulp.watch('./dist/*').on('change', browserSync.reload);
   browserSync.init({
     server: './dist',
@@ -33,13 +40,9 @@ gulp.task('build', [
   'build-html',
   'copy-manifest',
   'scripts',
-  'lib-scripts',
-  'compress-lib-js',
   'sw',
   'copy-img'
 ]);
-
-// sub tasks
 
 gulp.task('styles', function() {
   gulp
@@ -66,6 +69,12 @@ gulp.task('build-html', function() {
   gulp
     .src('src/*.html')
     .pipe(injectCSS())
+    .pipe(
+      minifyHTML({
+        removeComments: true,
+        collapseWhitespace: true
+      })
+    )
     .pipe(gulp.dest('./dist'));
 });
 
@@ -73,34 +82,44 @@ gulp.task('copy-manifest', function() {
   gulp.src('src/manifest.json').pipe(gulp.dest('./dist'));
 });
 
-gulp.task('scripts', function() {
+gulp.task('scripts', ['build-main', 'build-restaurants']);
+
+gulp.task('build-main', function() {
   gulp
-    .src('src/js/*.js')
+    .src([
+      'src/js/lib/idb.js',
+      'src/js/lib/dbhelper.js',
+      'src/js/lib/idbhelper.js',
+      'src/js/lib/intersection-observer.js',
+      'src/js/main.js'
+    ])
     .pipe(babel())
+    .pipe(concat('main.js'))
+    .pipe(rename('main.js'))
+    .pipe(uglify(options))
+    .on('error', function(err) {
+      gutil.log(gutil.colors.red('[Error]'), err.toString());
+    })
     .pipe(gulp.dest('./dist/js'));
 });
 
-gulp.task('lib-scripts', function() {
-  return gulp
-    .src('src/js/lib/*.js')
+gulp.task('build-restaurants', function() {
+  gulp
+    .src([
+      'src/js/lib/idb.js',
+      'src/js/lib/dbhelper.js',
+      'src/js/lib/idbhelper.js',
+      'src/js/lib/intersection-observer.js',
+      'src/js/restaurant_info.js'
+    ])
     .pipe(babel())
-    .pipe(concat('lib.js'))
+    .pipe(concat('restaurant_info.js'))
+    .pipe(rename('restaurant_info.js'))
+    .pipe(uglify(options))
+    .on('error', function(err) {
+      gutil.log(gutil.colors.red('[Error]'), err.toString());
+    })
     .pipe(gulp.dest('./dist/js'));
-});
-
-gulp.task('compress-lib-js', function(cb) {
-  pump(
-    [
-      gulp.src('dist/js/lib.js'),
-      rename('lib.min.js'),
-      babel({
-        presets: ['es2015']
-      }),
-      uglify(),
-      gulp.dest('./dist/js')
-    ],
-    cb
-  );
 });
 
 gulp.task('copy-img', function() {
