@@ -10,7 +10,6 @@ self.addEventListener('install', event => {
           '/',
           './index.html',
           './restaurant.html',
-          './js/lib.js',
           './js/main.js',
           './js/restaurant_info.js',
           './img/w600_1.jpg',
