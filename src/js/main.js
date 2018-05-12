@@ -152,10 +152,11 @@ const createRestaurantHTML = restaurant => {
   const dataSrc = document.createAttribute('data-src');
   dataSrc.value = DBHelper.imageUrlForRestaurant(restaurant);
 
+  const imgPlaceholderSrc =
+    'https://res.cloudinary.com/christekh/image/upload/c_scale,h_3,w_5/v1505391130/wynand-van-poortvliet-364366_gsvyby.jpg';
   const image = document.createElement('img');
   image.className = 'restaurant-img';
-  image.src =
-    'http://res.cloudinary.com/christekh/image/upload/c_scale,h_3,w_5/v1505391130/wynand-van-poortvliet-364366_gsvyby.jpg';
+  image.src = imgPlaceholderSrc;
   image.setAttributeNode(dataSrc);
   image.alt = DBHelper.getImageAlt(restaurant);
 
