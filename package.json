@@ -26,6 +26,7 @@
   "email": "brandy@udacity.com",
   "devDependencies": {
     "babel-core": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
     "browser-sync": "^2.23.6",
     "eslint": "^4.19.1",
     "eslint-config-prettier": "^2.9.0",
@@ -33,11 +34,17 @@
     "gulp-autoprefixer": "^5.0.0",
     "gulp-babel": "^7.0.1",
     "gulp-concat": "^2.6.1",
+    "gulp-htmlmin": "^4.0.0",
     "gulp-imagemin": "^4.1.0",
+    "gulp-inject-css": "^0.3.10",
     "gulp-prettier": "^1.1.0",
+    "gulp-rename": "^1.2.2",
     "gulp-sass": "^3.2.1",
-    "gulp-uglify": "^3.0.0",
+    "gulp-uglify-es": "^1.0.1",
+    "gulp-util": "^3.0.8",
     "lint-staged": "^7.0.0",
-    "prettier": "^1.11.1"
+    "prettier": "^1.11.1",
+    "pump": "^3.0.0",
+    "run-sequence": "^2.2.1"
   }
 }

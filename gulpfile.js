@@ -1,74 +1,38 @@
 const gulp = require('gulp');
+const gutil = require('gulp-util');
 const sass = require('gulp-sass');
 const autoprefixer = require('gulp-autoprefixer');
 const imagemin = require('gulp-imagemin');
 const concat = require('gulp-concat');
 const babel = require('gulp-babel');
-const uglify = require('gulp-uglify');
+const uglify = require('gulp-uglify-es').default;
+const pump = require('pump');
+const rename = require('gulp-rename');
+const injectCSS = require('gulp-inject-css');
+const minifyHTML = require('gulp-htmlmin');
 const browserSync = require('browser-sync').create();
 
-gulp.task(
-  'default',
-  ['copy-html', 'styles', 'copy-img', 'dev-scripts', 'sw'],
-  function() {
-    gulp.watch('src/*.html', ['copy-html']);
-    gulp.watch('src/scss/*.scss', ['styles']);
-    gulp.watch('src/js/*.js'), ['dev-scripts'];
-    gulp.watch('src/sw.js'), ['sw'];
-    gulp.watch('scr/img/*', ['copy-img']);
-    gulp.watch('./dist/index.html').on('change', browserSync.reload);
+gulp.task('default', ['copy-manifest', 'copy-img', 'build', 'watch']);
 
-    browserSync.init({
-      server: './dist',
-      port: 3000
-    });
-  }
-);
-
-gulp.task('copy-html', function() {
-  gulp.src('src/*.html').pipe(gulp.dest('./dist'));
+gulp.task('watch', function() {
+  console.log('👀  Gulp is watching 👀 ');
+  gulp.watch('src/js/**/*.js', ['build']);
+  gulp.watch('./dist/**/*').on('change', browserSync.reload);
+  browserSync.init({
+    server: './dist',
+    port: 3000
+  });
 });
 
-gulp.task('copy-data', function() {
-  gulp.src('src/data/*.json').pipe(gulp.dest('./dist/data'));
-});
-gulp.task('copy-img', function() {
-  gulp
-    .src('src/img/*')
-    .pipe(
-      imagemin({
-        progressive: true
-      })
-    )
-    .pipe(gulp.dest('dist/img'));
-  gulp.src('src/favicon.ico').pipe(gulp.dest('./dist'));
-});
-
-gulp.task('scripts', function() {
-  gulp
-    .src('src/js/**/*.js')
-    .pipe(babel())
-    .pipe(concat('all.js'))
-    .pipe(gulp.dest('./dist/js'));
-});
-gulp.task('dev-scripts', function() {
-  gulp
-    .src('src/js/*.js')
-    .pipe(babel())
-    .pipe(gulp.dest('./dist/js'));
-});
-
-gulp.task('sw', function() {
-  gulp
-    .src('src/sw.js')
-    .pipe(babel())
-    .pipe(concat('sw.js'))
-    .pipe(gulp.dest('./dist'));
-});
+gulp.task('build', ['styles', 'build-html', 'scripts', 'sw']);
 
 gulp.task('styles', function() {
   gulp
-    .src('src/scss/**/*.scss')
+    .src([
+      'src/scss/styles.scss',
+      'src/scss/styles.md.scss',
+      'src/scss/styles.lg.scss'
+    ])
     .pipe(
       sass({
         outputStyle: 'compressed'
@@ -79,6 +43,91 @@ gulp.task('styles', function() {
         browsers: ['last 2 versions']
       })
     )
-    .pipe(gulp.dest('dist/css'))
-    .pipe(browserSync.stream());
+    .pipe(concat('styles.min.css'))
+    .pipe(gulp.dest('./src/css'));
+});
+
+gulp.task('build-html', function() {
+  gulp
+    .src('src/*.html')
+    .pipe(injectCSS())
+    .pipe(
+      minifyHTML({
+        removeComments: true,
+        collapseWhitespace: true
+      })
+    )
+    .pipe(gulp.dest('./dist'));
+});
+
+gulp.task('copy-manifest', function() {
+  gulp.src('src/manifest.json').pipe(gulp.dest('./dist'));
+});
+
+gulp.task('scripts', ['build-main', 'build-restaurants']);
+
+gulp.task('build-main', function() {
+  gulp
+    .src([
+      'src/js/lib/idb.js',
+      'src/js/lib/dbhelper.js',
+      'src/js/lib/idbhelper.js',
+      'src/js/lib/intersection-observer.js',
+      'src/js/main.js'
+    ])
+    .pipe(babel())
+    .pipe(concat('main.js'))
+    .pipe(rename('main.js'))
+    .pipe(uglify())
+    .on('error', function(err) {
+      gutil.log(gutil.colors.red('[Error]'), err.toString());
+    })
+    .pipe(gulp.dest('./dist/js'));
+});
+
+gulp.task('build-restaurants', function() {
+  gulp
+    .src([
+      'src/js/lib/idb.js',
+      'src/js/lib/dbhelper.js',
+      'src/js/lib/idbhelper.js',
+      'src/js/lib/intersection-observer.js',
+      'src/js/restaurant_info.js'
+    ])
+    .pipe(babel())
+    .pipe(concat('restaurant_info.js'))
+    .pipe(rename('restaurant_info.js'))
+    .pipe(uglify())
+    .on('error', function(err) {
+      gutil.log(gutil.colors.red('[Error]'), err.toString());
+    })
+    .pipe(gulp.dest('./dist/js'));
+});
+
+gulp.task('copy-img', function() {
+  gulp
+    .src('src/img/*')
+    .pipe(
+      imagemin({
+        progressive: true
+      })
+    )
+    .pipe(gulp.dest('dist/img'));
+  gulp
+    .src('src/icons/*.png')
+    .pipe(
+      imagemin({
+        progressive: true
+      })
+    )
+    .pipe(gulp.dest('dist/icons'));
+  gulp.src('src/favicon.ico').pipe(gulp.dest('./dist'));
+});
+
+gulp.task('sw', function() {
+  gulp
+    .src('src/sw.js')
+    .pipe(babel())
+    .pipe(concat('sw.js'))
+    .pipe(gulp.dest('./dist'));
 });

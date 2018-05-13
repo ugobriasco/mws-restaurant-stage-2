@@ -11,9 +11,38 @@ document.addEventListener('DOMContentLoaded', event => {
 });
 
 /**
+ * Initialize Google map, called from HTML.
+ */
+window.initMap = () => {
+  let loc = {
+    lat: 40.722216,
+    lng: -73.987501
+  };
+  self.map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 12,
+    center: loc,
+    scrollwheel: false
+  });
+  fetchRestaurants();
+};
+
+window._updateRestaurants = () => {
+  updateRestaurants();
+};
+
+/**
  * Fetch all neighborhoods and set their HTML.
  */
-fetchNeighborhoods = () => {
+const fetchNeighborhoods = () => {
+  IDBHelper.getRestaurants()
+    .then(res => {
+      const neighborhoods = res.map((v, i) => res[i].neighborhood);
+      return neighborhoods.filter((v, i) => neighborhoods.indexOf(v) == i);
+    })
+    .then(res => {
+      self.neighborhoods = res;
+      fillNeighborhoodsHTML();
+    });
   DBHelper.fetchNeighborhoods((error, neighborhoods) => {
     if (error) {
       // Got an error
@@ -28,7 +57,7 @@ fetchNeighborhoods = () => {
 /**
  * Set neighborhoods HTML.
  */
-fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
+const fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
   const select = document.getElementById('neighborhoods-select');
   neighborhoods.forEach(neighborhood => {
     const option = document.createElement('option');
@@ -41,7 +70,17 @@ fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
 /**
  * Fetch all cuisines and set their HTML.
  */
-fetchCuisines = () => {
+const fetchCuisines = () => {
+  IDBHelper.getRestaurants()
+    .then(res => {
+      const cuisines = res.map((v, i) => res[i].cuisine_type);
+      return cuisines.filter((v, i) => cuisines.indexOf(v) == i);
+    })
+    .then(res => {
+      self.cuisines = res;
+      fillCuisinesHTML();
+    });
+
   DBHelper.fetchCuisines((error, cuisines) => {
     if (error) {
       // Got an error!
@@ -56,9 +95,8 @@ fetchCuisines = () => {
 /**
  * Set cuisines HTML.
  */
-fillCuisinesHTML = (cuisines = self.cuisines) => {
+const fillCuisinesHTML = (cuisines = self.cuisines) => {
   const select = document.getElementById('cuisines-select');
-
   cuisines.forEach(cuisine => {
     const option = document.createElement('option');
     option.innerHTML = cuisine;
@@ -67,27 +105,17 @@ fillCuisinesHTML = (cuisines = self.cuisines) => {
   });
 };
 
-/**
- * Initialize Google map, called from HTML.
- */
-window.initMap = () => {
-  let loc = {
-    lat: 40.722216,
-    lng: -73.987501
-  };
-  self.map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 12,
-    center: loc,
-    scrollwheel: false
+const fetchRestaurants = () => {
+  IDBHelper.getRestaurants().then(res => {
+    self.restaurants = res;
+    renderRestaurants(res);
   });
-
-  updateRestaurants();
 };
 
 /**
  * Update page and map for current restaurants.
  */
-updateRestaurants = () => {
+const updateRestaurants = () => {
   const cSelect = document.getElementById('cuisines-select');
   const nSelect = document.getElementById('neighborhoods-select');
 
@@ -97,6 +125,19 @@ updateRestaurants = () => {
   const cuisine = cSelect[cIndex].value;
   const neighborhood = nSelect[nIndex].value;
 
+  IDBHelper.getRestaurants(cuisine, neighborhood)
+    .then(res => {
+      let restaurants = res;
+      if (cuisine != 'all') {
+        restaurants = restaurants.filter(r => r.cuisine_type == cuisine);
+      }
+      if (neighborhood != 'all') {
+        restaurants = restaurants.filter(r => r.neighborhood == neighborhood);
+      }
+      return restaurants;
+    })
+    .then(res => renderRestaurants(res));
+
   DBHelper.fetchRestaurantByCuisineAndNeighborhood(
     cuisine,
     neighborhood,
@@ -105,32 +146,43 @@ updateRestaurants = () => {
         // Got an error!
         console.error(error);
       } else {
-        resetRestaurants(restaurants);
-        fillRestaurantsHTML();
+        renderRestaurants(restaurants);
       }
     }
   );
 };
 
+const renderRestaurants = restaurants => {
+  resetRestaurants(restaurants);
+  fillRestaurantsHTML();
+  //lazy loader
+  const images = document.querySelectorAll('.restaurant-img');
+  const observer = new IntersectionObserver(handleIntersection, options);
+  images.forEach(img => {
+    observer.observe(img);
+  });
+};
+
 /**
  * Clear current restaurants, their HTML and remove their map markers.
  */
-resetRestaurants = restaurants => {
+const resetRestaurants = restaurants => {
   // Remove all restaurants
   self.restaurants = [];
   const ul = document.getElementById('restaurants-list');
   ul.innerHTML = '';
 
   // Remove all map markers
-  self.markers.forEach(m => m.setMap(null));
+  if (self.markers) self.markers.forEach(m => m.setMap(null));
   self.markers = [];
   self.restaurants = restaurants;
+  return;
 };
 
 /**
  * Create all restaurants HTML and add them to the webpage.
  */
-fillRestaurantsHTML = (restaurants = self.restaurants) => {
+const fillRestaurantsHTML = (restaurants = self.restaurants) => {
   const ul = document.getElementById('restaurants-list');
   restaurants.forEach(restaurant => {
     ul.append(createRestaurantHTML(restaurant));
@@ -141,10 +193,16 @@ fillRestaurantsHTML = (restaurants = self.restaurants) => {
 /**
  * Create restaurant HTML.
  */
-createRestaurantHTML = restaurant => {
+const createRestaurantHTML = restaurant => {
+  const dataSrc = document.createAttribute('data-src');
+  dataSrc.value = DBHelper.imageUrlForRestaurant(restaurant);
+
+  const imgPlaceholderSrc =
+    'https://res.cloudinary.com/christekh/image/upload/c_scale,h_3,w_5/v1505391130/wynand-van-poortvliet-364366_gsvyby.jpg';
   const image = document.createElement('img');
   image.className = 'restaurant-img';
-  image.src = DBHelper.imageUrlForRestaurant(restaurant);
+  image.src = imgPlaceholderSrc;
+  image.setAttributeNode(dataSrc);
   image.alt = DBHelper.getImageAlt(restaurant);
 
   const name = document.createElement('h2');
@@ -174,7 +232,7 @@ createRestaurantHTML = restaurant => {
 /**
  * Add markers for current restaurants to the map.
  */
-addMarkersToMap = (restaurants = self.restaurants) => {
+const addMarkersToMap = (restaurants = self.restaurants) => {
   restaurants.forEach(restaurant => {
     // Add marker to the map
     const marker = DBHelper.mapMarkerForRestaurant(restaurant, self.map);
