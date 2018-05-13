@@ -23,26 +23,19 @@ const options = {
   }
 };
 
-gulp.task('default', ['build', 'watch']);
+gulp.task('default', ['copy-manifest', 'copy-img', 'build', 'watch']);
 
 gulp.task('watch', function() {
   console.log('👀  Gulp is watching 👀 ');
-  gulp.watch('src/*', ['build']);
-  gulp.watch('./dist/*').on('change', browserSync.reload);
+  gulp.watch('src/js/**/*.js', ['build']);
+  gulp.watch('./dist/**/*').on('change', browserSync.reload);
   browserSync.init({
     server: './dist',
     port: 3000
   });
 });
 
-gulp.task('build', [
-  'styles',
-  'build-html',
-  'copy-manifest',
-  'scripts',
-  'sw',
-  'copy-img'
-]);
+gulp.task('build', ['styles', 'build-html', 'scripts', 'sw']);
 
 gulp.task('styles', function() {
   gulp

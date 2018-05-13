@@ -35,6 +35,15 @@ window._updateRestaurants = () => {
  * Fetch all neighborhoods and set their HTML.
  */
 const fetchNeighborhoods = () => {
+  IDBHelper.getRestaurants()
+    .then(res => {
+      const neighborhoods = res.map((v, i) => res[i].neighborhood);
+      return neighborhoods.filter((v, i) => neighborhoods.indexOf(v) == i);
+    })
+    .then(res => {
+      self.neighborhoods = res;
+      fillNeighborhoodsHTML();
+    });
   DBHelper.fetchNeighborhoods((error, neighborhoods) => {
     if (error) {
       // Got an error
@@ -63,6 +72,16 @@ const fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
  * Fetch all cuisines and set their HTML.
  */
 const fetchCuisines = () => {
+  IDBHelper.getRestaurants()
+    .then(res => {
+      const cuisines = res.map((v, i) => res[i].cuisine_type);
+      return cuisines.filter((v, i) => cuisines.indexOf(v) == i);
+    })
+    .then(res => {
+      self.cuisines = res;
+      fillCuisinesHTML();
+    });
+
   DBHelper.fetchCuisines((error, cuisines) => {
     if (error) {
       // Got an error!
@@ -79,7 +98,6 @@ const fetchCuisines = () => {
  */
 const fillCuisinesHTML = (cuisines = self.cuisines) => {
   const select = document.getElementById('cuisines-select');
-
   cuisines.forEach(cuisine => {
     const option = document.createElement('option');
     option.innerHTML = cuisine;
@@ -101,6 +119,11 @@ const updateRestaurants = () => {
   const cuisine = cSelect[cIndex].value;
   const neighborhood = nSelect[nIndex].value;
 
+  IDBHelper.getRestaurants().then(res => {
+    console.log('serve from cache');
+    renderRestaurants(res);
+  });
+
   DBHelper.fetchRestaurantByCuisineAndNeighborhood(
     cuisine,
     neighborhood,
@@ -109,17 +132,22 @@ const updateRestaurants = () => {
         // Got an error!
         console.error(error);
       } else {
-        resetRestaurants(restaurants);
-        fillRestaurantsHTML();
-        //lazy loader
-        const images = document.querySelectorAll('.restaurant-img');
-        const observer = new IntersectionObserver(handleIntersection, options);
-        images.forEach(img => {
-          observer.observe(img);
-        });
+        console.log('serve from db');
+        renderRestaurants(restaurants);
       }
     }
   );
+};
+
+const renderRestaurants = restaurants => {
+  resetRestaurants(restaurants);
+  fillRestaurantsHTML();
+  //lazy loader
+  const images = document.querySelectorAll('.restaurant-img');
+  const observer = new IntersectionObserver(handleIntersection, options);
+  images.forEach(img => {
+    observer.observe(img);
+  });
 };
 
 /**
