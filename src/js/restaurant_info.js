@@ -88,17 +88,17 @@ const fillRestaurantHoursHTML = (
 ) => {
   const hours = document.getElementById('restaurant-hours');
   for (let key in operatingHours) {
-    const row = document.createElement('tr');
-
-    const day = document.createElement('td');
-    day.innerHTML = key;
-    row.appendChild(day);
-
-    const time = document.createElement('td');
-    time.innerHTML = operatingHours[key];
-    row.appendChild(time);
-
-    hours.appendChild(row);
+    if (!document.getElementById(key)) {
+      const row = document.createElement('tr');
+      row.setAttribute('id', key);
+      const day = document.createElement('td');
+      day.innerHTML = key;
+      row.appendChild(day);
+      const time = document.createElement('td');
+      time.innerHTML = operatingHours[key];
+      row.appendChild(time);
+      hours.appendChild(row);
+    }
   }
 };
 
@@ -107,9 +107,13 @@ const fillRestaurantHoursHTML = (
  */
 const fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   const container = document.getElementById('reviews-container');
-  const title = document.createElement('h3');
-  title.innerHTML = 'Reviews';
-  container.appendChild(title);
+
+  if (!document.getElementById('section-review-title')) {
+    const title = document.createElement('h3');
+    title.setAttribute('id', 'section-review-title');
+    title.innerHTML = 'Reviews';
+    container.appendChild(title);
+  }
 
   if (!reviews) {
     const noReviews = document.createElement('p');
@@ -119,7 +123,10 @@ const fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   }
   const ul = document.getElementById('reviews-list');
   reviews.forEach(review => {
-    ul.appendChild(createReviewHTML(review));
+    const reviewID = `review-from-${review.name.toLowerCase()}`;
+    if (!document.getElementById(reviewID)) {
+      ul.appendChild(createReviewHTML(review));
+    }
   });
   container.appendChild(ul);
 };
@@ -129,6 +136,8 @@ const fillReviewsHTML = (reviews = self.restaurant.reviews) => {
  */
 const createReviewHTML = review => {
   const li = document.createElement('li');
+  li.setAttribute('id', `review-from-${review.name.toLowerCase()}`);
+
   const name = document.createElement('p');
   name.innerHTML = review.name;
   li.appendChild(name);
@@ -144,7 +153,6 @@ const createReviewHTML = review => {
   const comments = document.createElement('p');
   comments.innerHTML = review.comments;
   li.appendChild(comments);
-
   return li;
 };
 
