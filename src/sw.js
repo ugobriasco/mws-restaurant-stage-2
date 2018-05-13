@@ -35,17 +35,17 @@ self.addEventListener('activate', event => {
   event.waitUntil(
     caches
       .keys()
-      .then(cacheNames => {
-        return Promise.all(
+      .then(cacheNames =>
+        Promise.all(
           cacheNames.filter(
             cName =>
               cName.startsWith('restaureant-review-') &&
               cName != staticCacheName
           )
-        );
-      })
+        )
+      )
+      .then(cNames => cNames.map(cName => caches.delete(cName)))
       .catch(err => console.log(err))
-      .map(cName => caches.delete(cName))
   );
 });
 
