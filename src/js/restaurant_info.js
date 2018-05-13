@@ -36,6 +36,12 @@ const fetchRestaurantFromURL = callback => {
     error = 'No restaurant id in URL';
     callback(error, null);
   } else {
+    IDBHelper.getRestaurants().then(res => {
+      restaurant = res.filter(r => r.id == id);
+      self.restaurant = restaurant[0];
+      fillRestaurantHTML();
+    });
+
     DBHelper.fetchRestaurantById(id, (error, restaurant) => {
       self.restaurant = restaurant;
       if (!restaurant) {

@@ -108,10 +108,10 @@ gulp.task('build-restaurants', function() {
     .pipe(babel())
     .pipe(concat('restaurant_info.js'))
     .pipe(rename('restaurant_info.js'))
-    .pipe(uglify(options))
-    .on('error', function(err) {
-      gutil.log(gutil.colors.red('[Error]'), err.toString());
-    })
+    // .pipe(uglify(options))
+    // .on('error', function(err) {
+    //   gutil.log(gutil.colors.red('[Error]'), err.toString());
+    // })
     .pipe(gulp.dest('./dist/js'));
 });
 

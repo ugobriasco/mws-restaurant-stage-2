@@ -15,23 +15,12 @@ class IDBHelper {
   }
 
   static getRestaurants() {
-    return dbPromise.then(function(db) {
-      const tx = db.transaction('restaurants');
-      const store = tx.objectStore('restaurants');
-      return store.getAll();
-    });
+    return dbPromise
+      .then(function(db) {
+        const tx = db.transaction('restaurants');
+        const store = tx.objectStore('restaurants');
+        return store.getAll();
+      })
+      .catch(err => console.log(err));
   }
-
-  // static getNeighborhoods() {
-  //   IDBHelper.getRestaurants().then(res => {
-  //     const neighborhoods = res.map((v, i) => res[i].neighborhood);
-  //     return neighborhoods.filter((v, i) => neighborhoods.indexOf(v) == i);
-  //   });
-  // }
-  // static getCousine() {
-  //   IDBHelper.getResaturants().then(res => {
-  //     const cuisines = res.map((v, i) => res[i].cuisine_type);
-  //     return cuisines.filter((v, i) => cuisines.indexOf(v) == i);
-  //   });
-  // }
 }
