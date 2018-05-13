@@ -23,8 +23,7 @@ window.initMap = () => {
     center: loc,
     scrollwheel: false
   });
-
-  updateRestaurants();
+  fetchRestaurants();
 };
 
 window._updateRestaurants = () => {
@@ -106,6 +105,13 @@ const fillCuisinesHTML = (cuisines = self.cuisines) => {
   });
 };
 
+const fetchRestaurants = () => {
+  IDBHelper.getRestaurants().then(res => {
+    self.restaurants = res;
+    renderRestaurants(res);
+  });
+};
+
 /**
  * Update page and map for current restaurants.
  */
@@ -119,10 +125,18 @@ const updateRestaurants = () => {
   const cuisine = cSelect[cIndex].value;
   const neighborhood = nSelect[nIndex].value;
 
-  IDBHelper.getRestaurants().then(res => {
-    console.log('serve from cache');
-    renderRestaurants(res);
-  });
+  IDBHelper.getRestaurants(cuisine, neighborhood)
+    .then(res => {
+      let restaurants = res;
+      if (cuisine != 'all') {
+        restaurants = restaurants.filter(r => r.cuisine_type == cuisine);
+      }
+      if (neighborhood != 'all') {
+        restaurants = restaurants.filter(r => r.neighborhood == neighborhood);
+      }
+      return restaurants;
+    })
+    .then(res => renderRestaurants(res));
 
   DBHelper.fetchRestaurantByCuisineAndNeighborhood(
     cuisine,
@@ -132,7 +146,6 @@ const updateRestaurants = () => {
         // Got an error!
         console.error(error);
       } else {
-        console.log('serve from db');
         renderRestaurants(restaurants);
       }
     }
