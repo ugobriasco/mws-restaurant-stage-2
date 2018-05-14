@@ -13,7 +13,7 @@
   },
   "scripts": {
     "debug": "node debug server.js",
-    "start": "nodemon server.js",
+    "start": "node server.js",
     "precommit": "lint-staged"
   },
   "main": "server.js",
